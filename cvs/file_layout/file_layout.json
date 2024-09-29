@@ -1,0 +1,148 @@
+{
+  "clientName": "TEST-CLIENT",
+  "memberFileLayout": [
+    {
+      "recordType": "3-Member 5.1 Com",
+      "fields": [
+        {
+
+          "fieldName": "memberId",
+          "position": 1,
+          "length": 18,
+          "validationType": "required",
+          "reactionCode": "MEMBER_ID MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "groupId",
+          "position": 18,
+          "length": 15,
+          "validationType": "required",
+          "reactionCode": "GROUP_ID MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "familyId",
+          "position": 33,
+          "length": 18,
+          "validationType": "required",
+          "reactionCode": "GROUP_ID MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "firstName",
+          "position": 51,
+          "length": 15,
+          "validationType": "checkStringLengthBounds",
+          "validationValues": {
+            "min": 5,
+            "max": 12
+          },
+          "reactionCode": "FIRST_NAME MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "lastName",
+          "position": 66,
+          "length": 25,
+          "validationType": "optional",
+          "reactionCode": "LAST_NAME MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "relationship",
+          "position": 91,
+          "length": 1,
+          "validationType": "list",
+          "validationValues": ["1", "2", "X"],
+          "reactionCode": "Invalid Relationship",
+          "reactionType": "reportAndLoad"
+        },
+        {
+          "fieldName": "sexCode",
+          "position": 92,
+          "length": 1,
+          "validationType": "list",
+          "validationValues": ["M", "F"],
+          "reactionCode": "Invalid sex code",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "dateOfBirth",
+          "position": 93,
+          "length": 10,
+          "validationType": "date",
+          "reactionCode": "INVALID DATE OF BIRTH",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "socialSecurityNumber",
+          "position": 103,
+          "length": 9,
+          "validationType": "optional",
+          "reactionCode": "SSN MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "address1",
+          "position": 112,
+          "length": 40,
+          "validationType": "required",
+          "reactionCode": "ADDRESS1 MISSING",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "country",
+          "position": 152,
+          "length": 4,
+          "validationType": "list",
+          "validationValues": ["USA", "CAN"],
+          "reactionCode": "INVALID COUNTRY CODE",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "familyType",
+          "position": 156,
+          "length": 1,
+          "validationType": "Optional",
+          "reactionCode": " ",
+          "reactionType": "Ignore"
+        },
+        {
+          "fieldName": "phoneNumber",
+          "position": 157,
+          "length": 10,
+          "validationType": "regex",
+          "validationValues": "^[0-9]{2}$",
+          "reactionCode": "INVALID PHONE NUMBER",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "effectiveDate",
+          "position": 167,
+          "length": 10,
+          "validationType": "date",
+          "reactionCode": "INVALID EFFECTIVE DATE",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "terminationDate",
+          "position": 177,
+          "length": 10,
+          "validationType": "DATE",
+          "reactionCode": "INVALID TERMINATION DATE",
+          "reactionType": "Reject Record"
+        },
+        {
+          "fieldName": "plan",
+          "position": 187,
+          "length": 10,
+          "validationType": "Required",
+          "reactionCode": "INVALID PLAN",
+          "reactionType": "Reject Record"
+        }
+      ]
+    }
+
+  ]
+}
