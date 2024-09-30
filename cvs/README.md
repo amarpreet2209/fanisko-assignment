@@ -10,6 +10,7 @@ The task is to create a simple ETL pipeline that extracts data from a text file,
 - the pipeline should be configurable through a configuration file
 - pipeline should be written in python or scala 
 - the candidate is free to choose any big data or dataframe framework to implement the pipeline(pyspark is preferred)
+- the pipeline needs to be deployed to a cloud (gcp preferred).
 - having orchestration tools like airflow or luigi is a plus
 - logging and observability is a plus
 
@@ -141,7 +142,7 @@ The task is to create a simple ETL pipeline that extracts data from a text file,
     - preferred storage format for bronze layer is parquet with metadata wrappers.
     - (candidate can choose any other format as well as Iceberg, Delta Lake etc.)
 - Silver layer 
-  - the silver layer is the cleaned data layer
+  - the silver layer is the cleaned data layer, where the records rejected during validation are filtered out
   - the data is transformed and loaded into the silver layer
   - bronze to silver should not have any rejects or corrupted data 
   - make sure the data types of fields are correct
