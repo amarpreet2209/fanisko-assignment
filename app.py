@@ -6,8 +6,6 @@ import logging
 from google.cloud import storage
 import io
 import time
-from pymongo import MongoClient
-import pandas as pd
 
 class GCSHandler(logging.Handler):
     def __init__(self, bucket_name, blob_name):
@@ -224,20 +222,9 @@ def main(config_path):
         # Gold Layer
         gold_data = silver_data
         
-        # Save Gold Layer to MongoDB
-        mongo_uri = "mongodb+srv://admin:admin@atlascluster.sb6xh.mongodb.net/?retryWrites=true&w=majority&appName=AtlasCluster"
-        client = MongoClient(mongo_uri)
-        db = client['fanisko']  # Replace with your actual database name
-        collection = db['gold_layer']  # Replace with your actual collection name
-
-        # Convert Spark DataFrame to Pandas DataFrame
-        pandas_df = gold_data.toPandas()
-
-        # Insert data into MongoDB
-        collection.insert_many(pandas_df.to_dict('records'))
-        logger.info(f"Gold layer saved to MongoDB")
-
-        client.close()
+        # Save Gold Layer as JSON files
+        gold_data.write.mode('overwrite').parquet(config['output_paths']['gold'])
+        logger.info(f"Gold layer saved to {config['output_paths']['gold']}")
 
     except Exception as e:
         if 'logger' in locals():
