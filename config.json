@@ -1,0 +1,16 @@
+{
+  "input_file_path": "gs://fanisko-bucket/raw-data/input_datasets/member_dataset.txt",
+  "file_layout_path": "gs://fanisko-bucket/raw-data/file_layout/file_layout.json",
+  "output_paths": {
+    "bronze": "gs://fanisko-bucket/processed_data/bronze_layer",
+    "silver": "gs://fanisko-bucket/processed_data/silver_layer",
+    "gold": "gs://fanisko-bucket/processed_data/gold_layer"
+  },
+  "date_columns": ["dateOfBirth", "effectiveDate", "terminationDate"],
+  "spark_config": {
+    "app_name": "MemberETLPipeline",
+    "master": "yarn"
+  },
+  "log_bucket": "fanisko-bucket",
+  "log_path": "logs"
+}
