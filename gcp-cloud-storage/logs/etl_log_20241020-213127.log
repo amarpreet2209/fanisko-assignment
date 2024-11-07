@@ -1,0 +1,33 @@
+2024-10-20 21:31:27,164 - INFO - Logger initialized
+2024-10-20 21:31:27,171 - INFO - Spark session created
+2024-10-20 21:31:28,275 - INFO - File layout loaded
+2024-10-20 21:31:28,275 - INFO - Schema created
+2024-10-20 21:31:29,050 - INFO - Fixed-width file read successfully
+2024-10-20 21:31:29,070 - INFO - Starting data validation process
+2024-10-20 21:31:29,070 - INFO - Validating field: memberId, Type: required
+2024-10-20 21:31:29,176 - INFO - Validating field: groupId, Type: required
+2024-10-20 21:31:29,259 - INFO - Validating field: familyId, Type: required
+2024-10-20 21:31:29,331 - INFO - Validating field: firstName, Type: checkstringlengthbounds
+2024-10-20 21:31:29,331 - INFO - validation_values: {"min":5,"max":12}
+2024-10-20 21:31:29,410 - INFO - Validating field: lastName, Type: optional
+2024-10-20 21:31:29,448 - INFO - Validating field: relationship, Type: list
+2024-10-20 21:31:29,448 - INFO - valid_values: ["1","2","X"]
+2024-10-20 21:31:29,533 - INFO - Validating field: sexCode, Type: list
+2024-10-20 21:31:29,533 - INFO - valid_values: ["M","F"]
+2024-10-20 21:31:29,600 - INFO - Validating field: dateOfBirth, Type: date
+2024-10-20 21:31:29,671 - INFO - Validating field: socialSecurityNumber, Type: optional
+2024-10-20 21:31:29,714 - INFO - Validating field: address1, Type: required
+2024-10-20 21:31:29,780 - INFO - Validating field: country, Type: list
+2024-10-20 21:31:29,780 - INFO - valid_values: ["USA","CAN"]
+2024-10-20 21:31:29,849 - INFO - Validating field: familyType, Type: optional
+2024-10-20 21:31:29,881 - INFO - Validating field: phoneNumber, Type: regex
+2024-10-20 21:31:29,939 - INFO - Validating field: effectiveDate, Type: date
+2024-10-20 21:31:29,994 - INFO - Validating field: terminationDate, Type: date
+2024-10-20 21:31:30,072 - INFO - Validating field: plan, Type: required
+2024-10-20 21:31:30,152 - INFO - Data validation process completed
+2024-10-20 21:31:30,152 - INFO - Data validation completed
+2024-10-20 21:31:33,857 - INFO - Bronze layer saved to gs://fanisko-bucket/processed_data/bronze_layer
+2024-10-20 21:31:33,886 - INFO - Silver layer data prepared
+2024-10-20 21:31:33,941 - INFO - Date columns converted
+2024-10-20 21:31:36,755 - INFO - Silver layer saved to gs://fanisko-bucket/processed_data/silver_layer
+2024-10-20 21:31:39,067 - INFO - Gold layer saved to gs://fanisko-bucket/processed_data/gold_layer
