@@ -1,6 +1,13 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, substring, to_date, when, lit, length, trim
 from pyspark.sql.types import StructType, StructField, StringType
+from pymongo import MongoClient
+from datetime import datetime
+from bson.codec_options import CodecOptions
+import pymongo
+from pyspark.sql.functions import to_timestamp, date_format
+from pyspark.sql.types import DateType, TimestampType
+import pandas as pd
 import json
 import logging
 from google.cloud import storage
@@ -31,7 +38,6 @@ def setup_logging(config):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
 
-    # Create GCS handler
     log_bucket = config['log_bucket']
     log_path = config['log_path']
     gcs_handler = GCSHandler(log_bucket, f"{log_path}/etl_log_{time.strftime('%Y%m%d-%H%M%S')}.log")
@@ -39,7 +45,6 @@ def setup_logging(config):
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     gcs_handler.setFormatter(formatter)
 
-    # Add GCS handler to logger
     logger.addHandler(gcs_handler)
     return logger
 
@@ -106,14 +111,14 @@ def validate_data(df, file_layout):
                      lit(reaction_code)).otherwise(col('validation_status'))
             )
         elif validation_type == 'list':
-            valid_values_str = field.validationValues  # Accessing validationValues directly as an attribute
+            valid_values_str = field.validationValues 
             logger.info(f"valid_values: {valid_values_str}")
             
             try:
-                # Parse the validation values from JSON string to list
+             
                 valid_values = json.loads(valid_values_str)
                 
-                # Ensure the column exists and valid_values is a list
+               
                 if isinstance(valid_values, list) and field_name in df.columns:
                     df = df.withColumn(
                         'validation_status',
@@ -130,13 +135,13 @@ def validate_data(df, file_layout):
             logger.info(f"validation_values: {validation_values_str}")
 
             try:
-                # Parse the validation values from JSON string to dictionary
+               
                 validation_values = json.loads(validation_values_str)
                 
                 min_length = int(validation_values.get('min'))
                 max_length = int(validation_values.get('max'))
                 
-                # Ensure the column exists in the dataframe and avoid null values
+               
                 if field_name in df.columns:
                     df = df.withColumn(
                         'validation_status',
@@ -172,19 +177,75 @@ def validate_data(df, file_layout):
     logger.info("Data validation process completed")
     return df
 
+def save_to_mongodb(df, mongodb_uri, database_name, collection_name):
+    try:
+        # Create MongoDB client
+        client = MongoClient(mongodb_uri)
+        db = client[database_name]
+        collection = db[collection_name]
+        
+        # Convert Spark DataFrame to Pandas and then to dictionary
+        pandas_df = df.toPandas()
+        records = pandas_df.to_dict('records')
+        
+        # Insert data into MongoDB
+        collection.insert_many(records)
+        logger.info(f"Successfully loaded {len(records)} records to MongoDB")
+        
+    except Exception as e:
+        logger.error(f"Error saving to MongoDB: {str(e)}")
+        raise
+    finally:
+        if 'client' in locals():
+            client.close()
+            logger.info("MongoDB connection closed")
 
+def convert_datetime_columns(df):
+    """Convert all date/datetime columns to timestamp string format"""
+    for field in df.schema.fields:
+        if isinstance(field.dataType, (DateType, TimestampType)):
+            df = df.withColumn(
+                field.name,
+                date_format(to_timestamp(df[field.name]), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            )
+    return df
+
+def save_to_mongodb(df, mongodb_uri, database_name, collection_name):
+    try:
+        df_processed = convert_datetime_columns(df)
+        
+        pandas_df = df_processed.toPandas()
+        records = pandas_df.to_dict('records')
+        
+        client = pymongo.MongoClient(mongodb_uri)
+        db = client[database_name]
+        collection = db.get_collection(
+            collection_name,
+            codec_options=CodecOptions(tz_aware=True)
+        )
+        
+        collection.insert_many(records)
+        client.close()
+        return True
+    
+    except Exception as e:
+        logger.error(f"Error saving to MongoDB: {str(e)}")
+        if 'client' in locals():
+            client.close()
+            logger.info("MongoDB connection closed")
+        return False
 
 def main(config_path):
     try:
-        # Load initial config to create the logger
+        
         spark = create_spark_session({'spark_config': {'app_name': 'MyApp', 'master': 'local[*]'}})
 
         config = load_config(spark, config_path)
         global logger
-        logger = setup_logging(config)  # Initialize logger after config is loaded
+        logger = setup_logging(config) 
         logger.info("Logger initialized")
 
-        # Continue with Spark session creation using proper config
+        
         spark = create_spark_session(config)
         logger.info("Spark session created")
 
@@ -199,7 +260,7 @@ def main(config_path):
 
         bronze_data = bronze_data.withColumn('validation_status', lit(""))
         bronze_data = validate_data(bronze_data, file_layout)
-        logger.info("Data validation completed")
+        logger.info("Data validation completed")        
         
         # Save Bronze Layer
         bronze_data.write.mode('overwrite').parquet(config['output_paths']['bronze'])
@@ -219,13 +280,37 @@ def main(config_path):
         silver_data.write.mode('overwrite').parquet(config['output_paths']['silver'])
         logger.info(f"Silver layer saved to {config['output_paths']['silver']}")
         
-        # Gold Layer
-        gold_data = silver_data
+        # # Gold Layer
+        # gold_data = silver_data
         
-        # Save Gold Layer as JSON files
-        gold_data.write.mode('overwrite').parquet(config['output_paths']['gold'])
-        logger.info(f"Gold layer saved to {config['output_paths']['gold']}")
+        # # Save Gold Layer as JSON files
+        # gold_data.write.mode('overwrite').parquet(config['output_paths']['gold'])
+        # logger.info(f"Gold layer saved to {config['output_paths']['gold']}")
+        
 
+        try:
+            gold_data = silver_data
+    
+            output_path = config['output_paths']['gold']
+            gold_data.write.mode('overwrite').parquet(output_path)
+            logger.info(f"Gold layer saved to {output_path}")
+            
+            mongodb_uri = "mongodb+srv://admin:admin@atlascluster.sb6xh.mongodb.net/?retryWrites=true&w=majority&appName=AtlasCluster"
+            
+            success = save_to_mongodb(
+                gold_data,
+                mongodb_uri,
+                database_name="fanisko",
+                collection_name="fanisko_gold_layer"
+            )
+    
+            if success:
+                logger.info("Gold layer successfully saved to MongoDB")
+            else:
+                logger.error("Failed to save gold layer to MongoDB")
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            raise
     except Exception as e:
         if 'logger' in locals():
             logger.error(f"An error occurred: {str(e)}")
